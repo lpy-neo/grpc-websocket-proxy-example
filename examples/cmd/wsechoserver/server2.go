@@ -6,18 +6,18 @@ import (
 	"time"
 
 	"github.com/golang/protobuf/jsonpb"
-	"github.com/lpy-neo/grpc-websocket-proxy/examples/cmd/wsechoserver/echoserver"
+	"github.com/lpy-neo/grpc-websocket-proxy/examples/cmd/wsechoserver/helloserver"
 	log "github.com/sirupsen/logrus"
 )
 
-type Server struct{}
+type Server2 struct{}
 
-func (s *Server) Stream(_ *echoserver.Empty, stream echoserver.EchoService_StreamServer) error {
+func (s *Server2) Stream(_ *helloserver.Empty, stream helloserver.HelloService_StreamServer) error {
 	start := time.Now()
 	for i := 0; i < 5; i++ {
 		time.Sleep(time.Second)
-		if err := stream.Send(&echoserver.EchoResponse{
-			Message: "hello there!" + fmt.Sprint(time.Now().Sub(start)),
+		if err := stream.Send(&helloserver.HelloResponse{
+			Message: "hello there2!" + fmt.Sprint(time.Now().Sub(start)),
 		}); err != nil {
 			return err
 		}
@@ -25,21 +25,21 @@ func (s *Server) Stream(_ *echoserver.Empty, stream echoserver.EchoService_Strea
 	return nil
 }
 
-func (s *Server) Echo(srv echoserver.EchoService_EchoServer) error {
+func (s *Server2) Hello(srv helloserver.HelloService_HelloServer) error {
 	for {
 		req, err := srv.Recv()
 		if err != nil {
 			return err
 		}
-		if err := srv.Send(&echoserver.EchoResponse{
-			Message: req.Message + "!",
+		if err := srv.Send(&helloserver.HelloResponse{
+			Message: req.Message + "2!",
 		}); err != nil {
 			return err
 		}
 	}
 }
 
-func (s *Server) Heartbeats(srv echoserver.EchoService_HeartbeatsServer) error {
+func (s *Server2) Heartbeats(srv helloserver.HelloService_HeartbeatsServer) error {
 	go func() {
 		for {
 			_, err := srv.Recv()
@@ -53,8 +53,8 @@ func (s *Server) Heartbeats(srv echoserver.EchoService_HeartbeatsServer) error {
 	t := time.NewTicker(time.Second * 1)
 	for {
 		log.Println("sending hb")
-		hb := &echoserver.Heartbeat{
-			Status: echoserver.Heartbeat_OK,
+		hb := &helloserver.Heartbeat{
+			Status: helloserver.Heartbeat_OK,
 		}
 		b := new(bytes.Buffer)
 		if err := (&jsonpb.Marshaler{}).Marshal(b, hb); err != nil {
